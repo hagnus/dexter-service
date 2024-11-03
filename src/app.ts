@@ -1,16 +1,17 @@
+import 'dotenv/config';
 import express, { Express, Request, Response } from "express";
-import dotenv from "dotenv";
 import { database } from '@data/db';
-
-dotenv.config();
+import userRouter from '@routes/users';
+import syncRouter from '@routes/sync';
 
 const app: Express = express();
-const port = process.env.PORT ?? 3001;
+const port = Number(process.env.NODE_LOCAL_PORT);
+const host = process.env.NODE_LOCAL_HOST ?? '';
 
 // Connect to the database
 database.authenticate()
- .then(() => console.log('Database connected'))
- .catch((err) => console.error('Error connecting to database:', err));
+  .then(() => console.log('Database Connected'))
+  .catch((err) => console.error('Error connecting to database:', err));
 
 // Middleware to parse JSON requests
 app.use(express.json());
@@ -20,6 +21,11 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!')
 })
 
-app.listen(port, () => {
-  console.log(`Dexter Servie is runnin on port ${port}`)
-})
+app.use('/sync', syncRouter)
+app.use('/users', userRouter);
+
+database.sync()
+  .then(() => app.listen(port, host, () => {
+    console.log(`Dexter Service is running on: ${host}:${port}`)
+  })
+)

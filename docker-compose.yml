@@ -32,6 +32,8 @@ services:
       - ./dexter-service:/src/ 
     stdin_open: true
     tty: true
+    expose:
+      - 3001
 
 volumes: 
   db:
