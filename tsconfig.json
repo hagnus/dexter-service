@@ -10,6 +10,7 @@
     "baseUrl": "./",
     "paths": {
       "@controllers/*": ["src/controllers/*"],
+      "@middlewares/*": ["src/middlewares/*"],
       "@routes/*": ["src/routes/*"],
       "@utils/*": ["src/utils/*"],
       "@data/*": ["src/data/*"]

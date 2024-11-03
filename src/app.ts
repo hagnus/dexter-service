@@ -1,8 +1,9 @@
 import 'dotenv/config';
-import express, { Express, Request, Response } from "express";
+import express, { Express, Request, Response, json } from "express";
 import { database } from '@data/db';
 import userRouter from '@routes/users';
 import syncRouter from '@routes/sync';
+import { verifyToken } from '@middlewares/auth';
 
 const app: Express = express();
 const port = Number(process.env.NODE_LOCAL_PORT);
@@ -14,14 +15,14 @@ database.authenticate()
   .catch((err) => console.error('Error connecting to database:', err));
 
 // Middleware to parse JSON requests
-app.use(express.json());
+app.use(json());
 
 app.get('/', (req: Request, res: Response) => {
   console.log(`Hello!`);
   res.send('Hello World!')
 })
 
-app.use('/sync', syncRouter)
+app.use('/sync', verifyToken, syncRouter)
 app.use('/users', userRouter);
 
 database.sync()

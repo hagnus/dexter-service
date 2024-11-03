@@ -34,18 +34,27 @@ export const UserModel = (database: Sequelize) => database.define(
         exclude: ['password']
       }
     },
+    scopes: {
+      auth: {
+        attributes: {
+          include: ['password']
+        }
+      }
+    },
     hooks: {
-      afterCreate: (user) => {
-        delete user.dataValues.password;
-      },
-      afterUpdate: (user) => {
+      afterSave: (user) => {
         delete user.dataValues.password;
       },
       beforeCreate: (user) => {
+        if (!user.dataValues.userName) {
+          user.dataValues.userName = user.dataValues.email.split('@').at(0);
+        }
         user.dataValues.password = hashSync(user.dataValues.password, 10);
       },
       beforeUpdate: (user) => {
-        user.dataValues.password = hashSync(user.dataValues.password, 10);
+        if(user.dataValues.password) {
+          user.dataValues.password = hashSync(user.dataValues.password, 10);
+        }
       }
     },
   },

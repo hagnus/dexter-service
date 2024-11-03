@@ -1,12 +1,14 @@
-import { User } from '@data/models';
 import { Request, Response } from "express";
+import { User } from '@data/models';
+import { compare } from 'bcrypt';
 import { identity, pickBy } from 'lodash';
+import { generateAccessToken } from "@data/models/utils";
 
 export async function create(req: Request, res: Response) {
-  const { username, email, firstName, lastName, password } = req.body;
+  const { userName, email, firstName, lastName, password } = req.body;
   try {
     const newUser = await User.create({
-      username,
+      userName,
       password,
       email,
       firstName,
@@ -14,7 +16,7 @@ export async function create(req: Request, res: Response) {
     });
     res.status(201).json(newUser);
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' + error});
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
@@ -65,7 +67,7 @@ export async function update(req: Request, res: Response) {
       user.setDataValue('firstName', firstName ?? user.getDataValue('firstName'));
       user.setDataValue('lastName', lastName ?? user.getDataValue('lastName'));
       user.setDataValue('password', password ?? user.getDataValue('password'));
-      
+
       await user.save();
 
       res.json(user);
@@ -76,3 +78,30 @@ export async function update(req: Request, res: Response) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+export async function signIn(req: Request, res: Response) {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.scope('auth').findOne({ where: { email: email } });
+
+    if (!user) {
+      res.status(401).json({ error: 'Authentication failed' });
+      return
+    }
+
+    const passwordMatch = await compare(password, user.dataValues.password);
+    if (!passwordMatch) {
+      res.status(401).json({ error: 'Authentication failed (password)' });
+      return
+    }
+
+    console.log('AUTH', user.dataValues);
+
+    const token = generateAccessToken(user.dataValues.id, user.dataValues.userName);
+    res.status(200).json({ token });
+
+  } catch (error) {
+    res.status(500).json({ error: 'Login failed' });
+  }
+}
