@@ -3,7 +3,7 @@ import express, { Express, Request, Response, json } from "express";
 import { database } from '@data/db';
 import userRouter from '@routes/users';
 import syncRouter from '@routes/sync';
-import { verifyToken } from '@middlewares/auth';
+import { authenticate, AuthRole, authorize } from '@middlewares/auth';
 import cors from 'cors';
 
 const app: Express = express();
@@ -29,7 +29,7 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!')
 })
 
-app.use('/sync', verifyToken, syncRouter)
+app.use('/sync', authenticate, authorize(AuthRole.ADMIN), syncRouter);
 app.use('/users', userRouter);
 
 database.sync()

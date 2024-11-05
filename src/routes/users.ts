@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { create, findById, signIn, update } from '@controllers/users';
-import { verifyToken } from '@middlewares/auth';
+import { authenticate, authorize } from '@middlewares/auth';
 
 const userRouter = Router();
 
 userRouter.post('/auth', signIn);
-userRouter.get('/:id', verifyToken, findById);
-userRouter.put('/:id', verifyToken, update);
+userRouter.get('/:userId', authenticate, authorize(), findById);
+userRouter.put('/:userId', authenticate, authorize(), update);
 userRouter.post('/', create);
 
 export default userRouter;

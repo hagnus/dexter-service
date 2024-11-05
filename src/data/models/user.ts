@@ -12,6 +12,12 @@ export const UserModel = (database: Sequelize) => database.define(
     userName: {
       type: DataTypes.STRING,
     },
+    role: {
+      type: DataTypes.ENUM,
+      values: ['USER', 'MANAGER', 'ADMIN'],
+      defaultValue: 'USER',
+      allowNull: false,
+    },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -31,13 +37,13 @@ export const UserModel = (database: Sequelize) => database.define(
     tableName: 'USERS',
     defaultScope: {
       attributes: {
-        exclude: ['password']
+        exclude: ['password', 'role']
       }
     },
     scopes: {
       auth: {
         attributes: {
-          include: ['password']
+          include: ['password', 'role']
         }
       }
     },

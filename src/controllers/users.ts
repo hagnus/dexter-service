@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { User } from '@data/models';
 import { compare } from 'bcrypt';
 import { identity, pickBy } from 'lodash';
-import { generateAccessToken } from "@data/models/utils";
+import { generateAccessToken } from "@middlewares/auth";
 
 export async function create(req: Request, res: Response) {
   const { userName, email, firstName, lastName, password } = req.body;
@@ -20,14 +20,14 @@ export async function create(req: Request, res: Response) {
   }
 }
 
-export async function findById(req: Request, res: Response) {
-  const { id } = req.params;
+export async function findById(req: Request, res: Response, next: NextFunction) {
+  const { userId } = req.params;
 
   try {
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(userId);
 
     if (user) {
-      res.json(user);
+      res.status(200).json(user);
     } else {
       res.status(404).json({ error: 'User not found' });
     }
@@ -54,12 +54,12 @@ export async function filterBy(req: Request, res: Response) {
   }
 }
 
-export async function update(req: Request, res: Response) {
-  const { id } = req.params;
+export async function update(req: Request, res: Response, next: NextFunction) {
+  const { userId } = req.params;
   const { userName, email, firstName, lastName, password } = req.body;
 
   try {
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(userId);
 
     if (user) {
       user.setDataValue('userName', userName ?? user.getDataValue('userName'));
@@ -99,7 +99,8 @@ export async function signIn(req: Request, res: Response) {
     const token = generateAccessToken(
       user.dataValues.id,
       user.dataValues.userName,
-      user.dataValues.email);
+      user.dataValues.role,
+    );
 
     res.status(200).json({ token });
 

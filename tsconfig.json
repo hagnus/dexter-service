@@ -15,5 +15,10 @@
       "@utils/*": ["src/utils/*"],
       "@data/*": ["src/data/*"]
     },
-  }
+  },
+  "exclude": ["node_modules", "dist"],
+  "include": ["**/*.ts"],
+  "files": [
+    "index.d.ts",
+  ],
 }
