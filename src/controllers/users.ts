@@ -96,9 +96,11 @@ export async function signIn(req: Request, res: Response) {
       return
     }
 
-    console.log('AUTH', user.dataValues);
+    const token = generateAccessToken(
+      user.dataValues.id,
+      user.dataValues.userName,
+      user.dataValues.email);
 
-    const token = generateAccessToken(user.dataValues.id, user.dataValues.userName);
     res.status(200).json({ token });
 
   } catch (error) {

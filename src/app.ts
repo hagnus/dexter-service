@@ -4,6 +4,7 @@ import { database } from '@data/db';
 import userRouter from '@routes/users';
 import syncRouter from '@routes/sync';
 import { verifyToken } from '@middlewares/auth';
+import cors from 'cors';
 
 const app: Express = express();
 const port = Number(process.env.NODE_LOCAL_PORT);
@@ -14,7 +15,13 @@ database.authenticate()
   .then(() => console.log('Database Connected'))
   .catch((err) => console.error('Error connecting to database:', err));
 
-// Middleware to parse JSON requests
+// Middlewares
+app.use(cors({
+  origin: process.env.ALLOWED_DOMAINS ? process.env.ALLOWED_DOMAINS.split(',') : '',
+  methods: ['GET', 'PUT', 'POST', 'HEAD', 'DELETE', 'OPTIONS'],
+  optionsSuccessStatus: 200,
+}));
+
 app.use(json());
 
 app.get('/', (req: Request, res: Response) => {

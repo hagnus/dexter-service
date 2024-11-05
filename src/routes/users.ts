@@ -4,7 +4,7 @@ import { verifyToken } from '@middlewares/auth';
 
 const userRouter = Router();
 
-userRouter.get('/auth', signIn);
+userRouter.post('/auth', signIn);
 userRouter.get('/:id', verifyToken, findById);
 userRouter.put('/:id', verifyToken, update);
 userRouter.post('/', create);
