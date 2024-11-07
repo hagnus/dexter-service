@@ -1,20 +1,6 @@
+import { AuthToken, AuthRole } from "@domains/auth";
 import { Request, Response, NextFunction } from "express";
-import { verify, sign } from 'jsonwebtoken';
-
-export type AuthRoleStrings = keyof typeof AuthRole;
-export enum AuthRole { 
-  ADMIN = 3,
-  MANAGER = 2,
-  USER = 1
-};
-
-export type AuthToken = {
-  id: string;
-  username: string;
-  role: AuthRoleStrings;
-  iat: number;
-  exp: number;
-}
+import { verify } from 'jsonwebtoken';
 
 export function authenticate(req: Request, res: Response, next: NextFunction) {
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -32,36 +18,26 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     };
     next();
 
-  } catch(err) {
+  } catch (err) {
     res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
-
-export function generateAccessToken(id: string, userName: string, role: AuthRole) {
-  if (process.env.TOKEN_SECRET) {
-    return sign({ id, user: userName, role }, process.env.TOKEN_SECRET , {
-      expiresIn: '15m', 
-    });
-  }
-
-  throw Error('Not able to generate tokens');
-}
 
 export function authorize(permission: AuthRole = AuthRole.USER) {
   return async (req: Request, res: Response, next: NextFunction) => {
     const { context } = req;
 
-    if(!context.role) {
-      res.status(403).json({ error: 'Access denied: No permission context' });
+    if (!context.role) {
+      res.status(403).json({ error: 'Access denied: No context' });
       return
     }
 
     if (permission > context.role) {
-      res.status(403).json({ error: 'Access denied' });
+      res.status(403).json({ error: 'Access denied: No privilege' });
       return
     }
 
-    if(context.role === AuthRole.USER && context.userId !== req.params.userId) {
+    if (context.role === AuthRole.USER && context.userId !== req.params.userId) {
       res.status(403).json({ error: 'Access denied: User without permission' });
       return
     }

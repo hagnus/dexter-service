@@ -11,6 +11,8 @@ export const UserModel = (database: Sequelize) => database.define(
     },
     userName: {
       type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
     },
     role: {
       type: DataTypes.ENUM,
@@ -21,6 +23,7 @@ export const UserModel = (database: Sequelize) => database.define(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true
     },
     password: {
       type: DataTypes.STRING,

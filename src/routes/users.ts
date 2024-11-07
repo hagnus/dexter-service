@@ -1,12 +1,10 @@
 import { Router } from 'express';
-import { create, findById, signIn, update } from '@controllers/users';
-import { authenticate, authorize } from '@middlewares/auth';
+import { create, findById, update } from '@controllers/users';
 
 const userRouter = Router();
 
-userRouter.post('/auth', signIn);
-userRouter.get('/:userId', authenticate, authorize(), findById);
-userRouter.put('/:userId', authenticate, authorize(), update);
+userRouter.get('/:userId', findById);
+userRouter.put('/:userId', update);
 userRouter.post('/', create);
 
 export default userRouter;

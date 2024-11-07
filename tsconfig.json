@@ -13,7 +13,8 @@
       "@middlewares/*": ["src/middlewares/*"],
       "@routes/*": ["src/routes/*"],
       "@utils/*": ["src/utils/*"],
-      "@data/*": ["src/data/*"]
+      "@data/*": ["src/data/*"],
+      "@domains/*": ["src/domains/*"]
     },
   },
   "exclude": ["node_modules", "dist"],

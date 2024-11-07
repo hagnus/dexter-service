@@ -1,8 +1,6 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { User } from '@data/models';
-import { compare } from 'bcrypt';
 import { identity, pickBy } from 'lodash';
-import { generateAccessToken } from "@middlewares/auth";
 
 export async function create(req: Request, res: Response) {
   const { userName, email, firstName, lastName, password } = req.body;
@@ -20,7 +18,7 @@ export async function create(req: Request, res: Response) {
   }
 }
 
-export async function findById(req: Request, res: Response, next: NextFunction) {
+export async function findById(req: Request, res: Response) {
   const { userId } = req.params;
 
   try {
@@ -54,9 +52,9 @@ export async function filterBy(req: Request, res: Response) {
   }
 }
 
-export async function update(req: Request, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response) {
   const { userId } = req.params;
-  const { userName, email, firstName, lastName, password } = req.body;
+  const { userName, email, firstName, lastName } = req.body;
 
   try {
     const user = await User.findByPk(userId);
@@ -66,7 +64,6 @@ export async function update(req: Request, res: Response, next: NextFunction) {
       user.setDataValue('email', email ?? user.getDataValue('email'));
       user.setDataValue('firstName', firstName ?? user.getDataValue('firstName'));
       user.setDataValue('lastName', lastName ?? user.getDataValue('lastName'));
-      user.setDataValue('password', password ?? user.getDataValue('password'));
 
       await user.save();
 
@@ -78,33 +75,3 @@ export async function update(req: Request, res: Response, next: NextFunction) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
-export async function signIn(req: Request, res: Response) {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.scope('auth').findOne({ where: { email: email } });
-
-    if (!user) {
-      res.status(401).json({ error: 'Authentication failed' });
-      return
-    }
-
-    const passwordMatch = await compare(password, user.dataValues.password);
-    if (!passwordMatch) {
-      res.status(401).json({ error: 'Authentication failed (password)' });
-      return
-    }
-
-    const token = generateAccessToken(
-      user.dataValues.id,
-      user.dataValues.userName,
-      user.dataValues.role,
-    );
-
-    res.status(200).json({ token });
-
-  } catch (error) {
-    res.status(500).json({ error: 'Login failed' });
-  }
-}

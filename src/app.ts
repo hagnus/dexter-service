@@ -3,8 +3,10 @@ import express, { Express, Request, Response, json } from "express";
 import { database } from '@data/db';
 import userRouter from '@routes/users';
 import syncRouter from '@routes/sync';
-import { authenticate, AuthRole, authorize } from '@middlewares/auth';
+import { authenticate, authorize } from '@middlewares/auth';
 import cors from 'cors';
+import { AuthRole } from '@domains/auth';
+import authRouter from '@routes/auth';
 
 const app: Express = express();
 const port = Number(process.env.NODE_LOCAL_PORT);
@@ -24,13 +26,20 @@ app.use(cors({
 
 app.use(json());
 
-app.get('/', (req: Request, res: Response) => {
-  console.log(`Hello!`);
-  res.send('Hello World!')
-})
+// PUBLIC ROUTES
+app.use('/auth', authRouter);
 
-app.use('/sync', authenticate, authorize(AuthRole.ADMIN), syncRouter);
+// AUTH ROUTES
+app.use(authenticate);
+app.use('/users/:userId', authorize(AuthRole.USER));
 app.use('/users', userRouter);
+
+// MANAGER ROUTES
+// app.use(authorize(AuthRole.MANAGER));
+
+// ADMIN ROUTES
+app.use(authorize(AuthRole.ADMIN));
+app.use('/sync', syncRouter);
 
 database.sync()
   .then(() => app.listen(port, host, () => {
