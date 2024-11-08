@@ -1,12 +1,13 @@
 import { Options } from "sequelize/types/sequelize";
 import { Sequelize } from "sequelize";
+import { Environment } from "@constants";
 
 export const CONFIG: Options = {
-  host: process.env.DB_HOST,
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: Number(process.env.DB_PORT),
+  host: Environment.DB_HOST,
+  username: Environment.DB_USER,
+  password: Environment.DB_PASSWORD,
+  database: Environment.DB_NAME,
+  port: Number(Environment.DB_PORT),
   dialect: "mysql",
   pool: {
     max: 5,

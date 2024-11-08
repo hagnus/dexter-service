@@ -1,17 +1,18 @@
 import { AuthToken, AuthRole } from "@domains/auth";
+import { Environment } from "@constants";
 import { Request, Response, NextFunction } from "express";
 import { verify } from 'jsonwebtoken';
 
 export function authenticate(req: Request, res: Response, next: NextFunction) {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
+  const token = req.cookies[Environment.ACCESS_TOKEN_NAME];
 
-  if (!token || !process.env.TOKEN_SECRET) {
+  if (!token) {
     res.status(401).json({ error: 'Unauthorized' });
     return
   }
 
   try {
-    var decoded = verify(token, process.env.TOKEN_SECRET) as AuthToken;
+    var decoded = verify(token, Environment.ACCESS_TOKEN_SECRET) as AuthToken;
     req.context = {
       userId: decoded.id,
       role: AuthRole[decoded.role]
@@ -19,7 +20,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     next();
 
   } catch (err) {
-    res.status(401).json({ error: 'Invalid or expired token' });
+    res.status(401).json({ error: 'Invalid or expired token' + err });
   }
 };
 

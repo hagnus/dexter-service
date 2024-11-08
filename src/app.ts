@@ -1,5 +1,6 @@
 import 'dotenv/config';
-import express, { Express, Request, Response, json } from "express";
+import { Environment } from '@constants';
+import express, { Express, json } from "express";
 import { database } from '@data/db';
 import userRouter from '@routes/users';
 import syncRouter from '@routes/sync';
@@ -7,10 +8,10 @@ import { authenticate, authorize } from '@middlewares/auth';
 import cors from 'cors';
 import { AuthRole } from '@domains/auth';
 import authRouter from '@routes/auth';
+import cookieParser from 'cookie-parser';
 
 const app: Express = express();
-const port = Number(process.env.NODE_LOCAL_PORT);
-const host = process.env.NODE_LOCAL_HOST ?? '';
+const { NODE_LOCAL_PORT, NODE_LOCAL_HOST, ALLOWED_DOMAINS } = Environment;
 
 // Connect to the database
 database.authenticate()
@@ -19,12 +20,13 @@ database.authenticate()
 
 // Middlewares
 app.use(cors({
-  origin: process.env.ALLOWED_DOMAINS ? process.env.ALLOWED_DOMAINS.split(',') : '',
+  origin: ALLOWED_DOMAINS.split(','),
   methods: ['GET', 'PUT', 'POST', 'HEAD', 'DELETE', 'OPTIONS'],
   optionsSuccessStatus: 200,
 }));
 
 app.use(json());
+app.use(cookieParser());
 
 // PUBLIC ROUTES
 app.use('/auth', authRouter);
@@ -42,7 +44,7 @@ app.use(authorize(AuthRole.ADMIN));
 app.use('/sync', syncRouter);
 
 database.sync()
-  .then(() => app.listen(port, host, () => {
-    console.log(`Dexter Service is running on: ${host}:${port}`)
+  .then(() => app.listen(Number(NODE_LOCAL_PORT), NODE_LOCAL_HOST, () => {
+    console.log(`Dexter Service is running on: ${NODE_LOCAL_HOST}:${NODE_LOCAL_PORT}`)
   })
-)
+  )

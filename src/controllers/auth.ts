@@ -1,41 +1,67 @@
+import { Environment } from "@constants";
 import { Session, User } from "@data/models";
 import { Request, Response } from "express";
 import { verify, sign } from 'jsonwebtoken';
 import { compare } from 'bcrypt';
 import { AuthToken } from "@domains/auth";
 
-function createToken(payload: AuthToken, expiration: string, secret?: string) {
+function createToken(payload: AuthToken, expiration: string, secret: string) {
   const { id, userName, role } = payload;
 
-  if (secret) {
-    return sign(
-      { id, userName, role },
-      secret,
-      { expiresIn: expiration }
-    );
-  }
+  return sign(
+    { id, userName, role },
+    secret,
+    { expiresIn: `${expiration}ms` }
+  );
+}
 
-  throw Error('Not able to generate tokens');
+function setCookies(response: Response, refreshToken: string, accessToken: string) {
+  const { SESSION_TOKEN_NAME, ACCESS_TOKEN_NAME, SESSION_DURATION, ACCESS_DURATION } = Environment;
+
+  response.cookie(
+    ACCESS_TOKEN_NAME,
+    accessToken,
+    {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: Number(ACCESS_DURATION)
+    }
+  );
+
+  response.cookie(
+    SESSION_TOKEN_NAME,
+    refreshToken,
+    {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      // path: '/refresh',
+      maxAge: Number(SESSION_DURATION)
+    }
+  );
+
+  return response;
 }
 
 export function generateAccessToken(payload: AuthToken) {
-  return createToken(payload, '15min', process.env.TOKEN_SECRET);
+  return createToken(payload, Environment.ACCESS_DURATION, Environment.ACCESS_TOKEN_SECRET);
 }
 
 export function generateRefreshToken(payload: AuthToken) {
-  return createToken(payload, '30d', process.env.REFRESH_TOKEN_SECRET);
+  return createToken(payload, Environment.SESSION_DURATION, Environment.SESSION_TOKEN_SECRET);
 }
 
-export async function refreshSession(req: Request, res: Response) {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
+export async function refresh(req: Request, res: Response) {
+  const token = req.cookies[Environment.SESSION_TOKEN_NAME];
 
-  if (!token || !process.env.REFRESH_TOKEN_SECRET) {
+  if (!token) {
     res.status(401).json({ error: 'Unauthorized' });
     return
   }
 
   try {
-    const tokenData = verify(token, process.env.REFRESH_TOKEN_SECRET) as AuthToken;
+    const tokenData = verify(token, Environment.SESSION_TOKEN_SECRET) as AuthToken;
     const accessToken = generateAccessToken(tokenData);
 
     res.status(200).json({ accessToken, refreshToken: token });
@@ -78,6 +104,8 @@ export async function login(req: Request, res: Response) {
       token: refreshToken
     });
 
+    setCookies(res, refreshToken, accessToken);
+
     res.status(200).json({ accessToken, refreshToken }).send();
   } catch (error) {
     res.status(500).json({ error: 'Login failed' }).send();
@@ -86,19 +114,22 @@ export async function login(req: Request, res: Response) {
 
 export async function logout(req: Request, res: Response) {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = req.cookies[Environment.SESSION_TOKEN_NAME];
 
-    if (!token || !process.env.REFRESH_TOKEN_SECRET) {
+    if (!token) {
       res.status(401).json({ error: 'Unauthorized' });
       return
     }
 
-    const { id } = verify(token, process.env.REFRESH_TOKEN_SECRET) as AuthToken;
+    const { id } = verify(token, Environment.SESSION_TOKEN_SECRET) as AuthToken;
 
     // Consider destroy session individually (where token == token)
     Session.destroy({
       where: { userId: id }
     });
+
+    res.clearCookie(Environment.ACCESS_TOKEN_NAME);
+    res.clearCookie(Environment.SESSION_TOKEN_NAME);
 
     res.status(200).json().send();
   } catch (error) {
@@ -134,6 +165,8 @@ export async function register(req: Request, res: Response) {
       userId: newUser.dataValues.id,
       token: refreshToken
     });
+
+    setCookies(res, accessToken, refreshToken);
 
     res.status(200).json({ accessToken, refreshToken }).send();
   } catch {
