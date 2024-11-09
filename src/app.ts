@@ -2,12 +2,12 @@ import 'dotenv/config';
 import { Environment } from '@constants';
 import express, { Express, json } from "express";
 import { database } from '@data/db';
-import userRouter from '@routes/users';
+import userRouter from '@domains/user/users.route';
 import syncRouter from '@routes/sync';
 import { authenticate, authorize } from '@middlewares/auth';
 import cors from 'cors';
-import { AuthRole } from '@domains/auth';
-import authRouter from '@routes/auth';
+import { AuthRole } from '@domains/auth/auth.types';
+import authRouter from '@domains/auth/auth.route';
 import cookieParser from 'cookie-parser';
 
 const app: Express = express();

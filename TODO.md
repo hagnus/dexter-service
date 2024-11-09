@@ -1,9 +1,9 @@
 # TO DO
-- [ ] Refactoring: Use cookies strategy for authentication and authorization
-- [ ] Refactoring: Create Service Layer
 - [ ] Config logger tool
 
 # DONE
+- [x] Refactoring: Create Service Layer
+- [x] Refactoring: Use cookies strategy for authentication and authorization
 - [x] Setup Express Project
 - [x] Create a docker container for MySQL
 - [x] Config Sequelize

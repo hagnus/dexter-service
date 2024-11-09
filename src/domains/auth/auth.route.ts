@@ -1,7 +1,7 @@
 
 
 import { Router } from 'express';
-import { login, logout, refresh, register } from '@controllers/auth';
+import { login, logout, refresh, register } from '@domains/auth/auth.control';
 
 const authRouter = Router();
 

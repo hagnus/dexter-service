@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { create, findById, update } from '@controllers/users';
+import { create, findOne, update } from '@domains/user/users.control';
 
 const userRouter = Router();
 
-userRouter.get('/:userId', findById);
+userRouter.get('/:userId', findOne);
 userRouter.put('/:userId', update);
 userRouter.post('/', create);
 

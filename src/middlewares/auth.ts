@@ -1,4 +1,4 @@
-import { AuthToken, AuthRole } from "@domains/auth";
+import { AuthToken, AuthRole } from "@domains/auth/auth.types";
 import { Environment } from "@constants";
 import { Request, Response, NextFunction } from "express";
 import { verify } from 'jsonwebtoken';
